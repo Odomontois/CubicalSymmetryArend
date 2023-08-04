@@ -1,0 +1,7 @@
+\func Ident {X : \Type} {x x' : X} (p : x = x') (Y : X -> \Type) (y : Y x) (y' : Y x') : \Type
+  | idp, _, y, y' => y = y'
+
+
+
+
+--\func apd (X : \Type) (Y : X -> \Type) (x : X) (f : \Pi (x : X) -> Y x) (x x' : X): f(x) = f(x') => {?}
