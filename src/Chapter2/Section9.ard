@@ -51,16 +51,6 @@
 
 \func \fixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
 
-\class d10 {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
-           (x : X) (p : a = x) {
-  \func f : B x p -> B a idp => Jl (B __ __ -> B a idp) id p
-} \where {
-  \func equiv {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
-              (u : d10 a B) : QEquiv u.f \cowith
-    | ret => {?}
-    | ret_f => {?}
-    | f_sec => {?}
-}
 
 \func d10' {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
            (x : X) (p : a = x) (b : B x p):  B a idp \elim p
@@ -69,9 +59,6 @@
 
   \func sigma-f : st -> B a idp => \lam (x, p, b) => d10' a B x p b
 
-  \func equiv-ret-f (x : X) (p : a = x) (b : B x p) : (a, idp, sigma-f (x, p, b)) = {st} (x, p, b) \elim p
-    | idp => idp
-
   \lemma equiv : Equiv' sigma-f => fromEquiv $
   \new QEquiv sigma-f {
     | ret b => (a, idp, b)
@@ -79,7 +66,8 @@
     | f_sec y => idp
   }
     \where {
-
+      \func equiv-ret-f (x : X) (p : a = x) (b : B x p) : (a, idp, sigma-f (x, p, b)) = {st} (x, p, b) \elim p
+        | idp => idp
     }
 }
 
