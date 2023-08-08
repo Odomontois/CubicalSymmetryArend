@@ -1,16 +1,19 @@
+\import Equiv.Univalence
+\import Function
+\import HLevel
 \import Equiv.Fiber
 \import Equiv.Sigma
 \import Equiv
-\import HLevel
+\import Function.Meta
 \import Homotopy.Fibration
 \import Meta
+\import Paths
 \import Paths.Meta
 
 \class _definitions_2_9 {X Y : \Type}  {
   \func contr (a : X) : Contr (\Sigma (x : X) (a = x)) => lsigma a
 
   \func fiber (f : X -> Y) (y : Y) => Fib f y
-
 }
 
 \record Equiv' {X Y : \Type} (f : X -> Y) {
@@ -18,11 +21,67 @@
 
   \func toEquiv : QEquiv f => contrFibers=>Equiv contr
 
-  \func inv (y : Y) : X => \let fib : Contr => contr y \in fib.center.1
+  \func f-1 (y : Y) : X => \let fib : Contr => contr y \in fib.center.1
+
+  \func finv (y : Y) : f (f-1 y) = y => \let fib : Contr (Fib f y) => contr y \in fib.center.2
+
+  \func invf (x : X) : f-1 (f x) = x =>
+    \let | y : Y => f x
+         | fib : Contr (Fib f y) => contr y
+         | p => fib.contraction (x, idp)
+    \in pmap __.1 p
+} \where {
+  \func inverse' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
+
+  \func inverse (e : Equiv') : Equiv' e.f-1 \cowith
+    | contr (x : e.X) : Contr (Fib e.f-1 x) =>
+    \let | y => f x
+         | contr-y : Contr (Fib f y) => e.contr y
+         | ((cx, py) \as center-y): Fib f y => contr-y.center
+         | fib : Fib e.f-1 x => (f cx, pmap f-1 py *> invf x)
+    \in \new Contr (Fib e.f-1 x) {
+      | center => fib
+      | contraction ((y', px') \as fib') =>
+        Fib.ext f-1 x fib fib' (py *> pmap f (inv px') *> finv y') $ {?}
+    }
 }
 
-\func fromEquiv (q : QEquiv): Equiv' q.f \cowith
+\func fromEquiv (q : Equiv): Equiv' q.f \cowith
   | contr => Equiv=>contrFibers q
 
 \func \fixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
+
+\class d10 {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
+           (x : X) (p : a = x) {
+  \func f : B x p -> B a idp => Jl (B __ __ -> B a idp) id p
+} \where {
+  \func equiv {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
+              (u : d10 a B) : QEquiv u.f \cowith
+    | ret => {?}
+    | ret_f => {?}
+    | f_sec => {?}
+}
+
+\func d10' {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
+           (x : X) (p : a = x) (b : B x p):  B a idp \elim p
+  | idp => b \where {
+  \func st => \Sigma (x : X) (p : a = x) (B x p)
+
+  \func sigma-f : st -> B a idp => \lam (x, p, b) => d10' a B x p b
+
+  \func equiv-ret-f (x : X) (p : a = x) (b : B x p) : (a, idp, sigma-f (x, p, b)) = {st} (x, p, b) \elim p
+    | idp => idp
+
+  \lemma equiv : Equiv' sigma-f => fromEquiv $
+  \new QEquiv sigma-f {
+    | ret b => (a, idp, b)
+    | ret_f (x, p, b) => equiv-ret-f x p b
+    | f_sec y => idp
+  }
+    \where {
+
+    }
+}
+
+
 
