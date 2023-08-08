@@ -1,0 +1,28 @@
+\import Equiv.Fiber
+\import Equiv.Sigma
+\import Equiv
+\import HLevel
+\import Homotopy.Fibration
+\import Meta
+\import Paths.Meta
+
+\class _definitions_2_9 {X Y : \Type}  {
+  \func contr (a : X) : Contr (\Sigma (x : X) (a = x)) => lsigma a
+
+  \func fiber (f : X -> Y) (y : Y) => Fib f y
+
+}
+
+\record Equiv' {X Y : \Type} (f : X -> Y) {
+  | contr (y : Y) : Contr (Fib f y)
+
+  \func toEquiv : QEquiv f => contrFibers=>Equiv contr
+
+  \func inv (y : Y) : X => \let fib : Contr => contr y \in fib.center.1
+}
+
+\func fromEquiv (q : QEquiv): Equiv' q.f \cowith
+  | contr => Equiv=>contrFibers q
+
+\func \fixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
+

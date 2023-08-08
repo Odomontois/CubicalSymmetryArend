@@ -1,0 +1,27 @@
+\import Paths
+
+\func DepPath {X : \Type} {x x' : X} {Y : X -> \Type} (p : x = x') (y : Y x) (y' : Y x') : \Type
+  | idp, y, y' => y = y'
+
+\func pe {X : \Type} {x x' : X} {Y : X -> \Type} (p : x = x') (y : Y x)(y' : Y x')
+  : Path (\lam i => Y (p @ i)) y y' = DepPath p y y'
+  | idp, _, _ => idp
+
+
+\func po {X : \Type} {x x' : X} {Y : X -> \Type} (p : x = x') (y : Y x) (y' : Y x')
+  : DepPath p y y' = (transport Y p y = y')
+  | idp, _, _ => idp
+
+\func p-comp {X : \Type} {x x' x'' : X} {Y : X -> \Type} (p : x = x') (p' : x' = x'')
+             (y : Y x) (y' : Y x') (y'' : Y x'')
+             (q : DepPath p y y') (q' : DepPath p' y' y'') : DepPath (p *> p') y y''
+  | _, idp, _, _, _, q, idp => q
+
+\func p-inv {X : \Type} {x x' : X} {Y : X -> \Type} (p : x = x')  (y : Y x) (y' : Y x')
+    (q : DepPath p y y') : DepPath (inv p) y' y
+  | idp, _, _, q => inv q
+
+
+\func apd {X : \Type} {Y : X -> \Type} {x x' : X} (p : x = x') (f : \Pi(x : X) -> Y x) : DepPath p (f x) (f x')
+  | idp, _ => idp
+
