@@ -1,3 +1,4 @@
+\import Chapter2.Section7
 \import Equiv.Univalence
 \import Function
 \import HLevel
@@ -33,6 +34,19 @@
 } \where {
   \func inverse' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
 
+  \func inverse'' (e : Equiv') : Equiv' e.f-1 \cowith
+    | contr (x : e.X) : Contr (Fib e.f-1 x) =>
+    \let | y0 => f x
+         | px0 : e.f-1 y0 = x => invf x
+         | fib0 : Fib e.f-1 x => (y0, px0)
+    \in \new Contr (Fib e.f-1 x) {
+      | center => fib0
+      | contraction ((y', px') \as fib') =>
+        \let | py : y0 = y' => pmap f (inv px') *> finv y'
+             | qfib : DepPath py px0 px' => {?}
+        \in DepPath.apap px0 px' {Fib e.f-1 x} (__, __) py qfib
+    }
+
   \func inverse (e : Equiv') : Equiv' e.f-1 \cowith
     | contr (x : e.X) : Contr (Fib e.f-1 x) =>
     \let | y => f x
@@ -50,7 +64,6 @@
   | contr => Equiv=>contrFibers q
 
 \func \infixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
-
 
 \func d10' {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
            (x : X) (p : a = x) (b : B x p):  B a idp \elim p
@@ -71,18 +84,18 @@
     }
 }
 
-\func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y)))  => {?}
+\func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y))) =>
+  {?}
 --  fromEquiv $ =-to-Equiv $ pmap (\lam x => {?}
-
 
 \func exercise_12 {X Y : \Type} (e : X ~= Y) (B : X -> \Type) =>
   fromEquiv $
-    \new QEquiv {\Sigma (x : X) (B x)} {\Sigma (y : Y) (B (e.f-1 y))} {
-      | f (x, b) => (e.f x, transport B (inv (e.invf x)) b)
-      | ret (y, b) => (e.f-1 y, transport (\lam y => B (e.f-1 y)) idp b)
-      | ret_f (x, b) => {?}
-      | f_sec => {?}
-    }
+  \new QEquiv {\Sigma (x : X) (B x)} {\Sigma (y : Y) (B (e.f-1 y))} {
+    | f (x, b) => (e.f x, transport B (inv (e.invf x)) b)
+    | ret (y, b) => (e.f-1 y, transport (\lam y => B (e.f-1 y)) idp b)
+    | ret_f (x, b) => {?}
+    | f_sec => {?}
+  }
 
 
 
