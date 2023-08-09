@@ -49,7 +49,7 @@
 \func fromEquiv (q : Equiv): Equiv' q.f \cowith
   | contr => Equiv=>contrFibers q
 
-\func \fixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
+\func \infixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
 
 
 \func d10' {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
@@ -70,6 +70,19 @@
         | idp => idp
     }
 }
+
+\func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y)))  => {?}
+--  fromEquiv $ =-to-Equiv $ pmap (\lam x => {?}
+
+
+\func exercise_12 {X Y : \Type} (e : X ~= Y) (B : X -> \Type) =>
+  fromEquiv $
+    \new QEquiv {\Sigma (x : X) (B x)} {\Sigma (y : Y) (B (e.f-1 y))} {
+      | f (x, b) => (e.f x, transport B (inv (e.invf x)) b)
+      | ret (y, b) => (e.f-1 y, transport (\lam y => B (e.f-1 y)) idp b)
+      | ret_f (x, b) => {?}
+      | f_sec => {?}
+    }
 
 
 
