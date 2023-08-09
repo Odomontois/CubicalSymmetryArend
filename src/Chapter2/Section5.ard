@@ -1,0 +1,20 @@
+\import Paths
+
+\func exercise_3 {X : \Type} (a b c d : X) => () \where {
+  \func ex1 (p : a = b): p *> idp = p => idp
+
+  \func ex2 (p : a = b) : idp *> p = p \elim p
+    | idp => idp
+
+  \func ex3(p : a = b) (q : b = c) (r : c = d) : (p *> q) *> r = p *> (q *> r) \elim q, r
+    | idp, idp => idp
+
+  \func ex4 (p : a = b): inv p *> p = idp \elim p
+    | idp => idp
+
+  \func ex5 (p : a = b): p *> inv p = idp \elim p
+    | idp => idp
+
+  \func ex6 (p : a = b): inv (inv p) = p \elim p
+    | idp => idp
+}

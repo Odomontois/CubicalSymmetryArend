@@ -32,9 +32,9 @@
          | p => fib.contraction (x, idp)
     \in pmap __.1 p
 } \where {
-  \func inverse' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
+  \lemma inverse' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
 
-  \func inverse'' (e : Equiv') : Equiv' e.f-1 \cowith
+  \lemma inverse'' (e : Equiv') : Equiv' e.f-1 \cowith
     | contr (x : e.X) : Contr (Fib e.f-1 x) =>
     \let | y0 => f x
          | px0 : e.f-1 y0 = x => invf x
@@ -43,11 +43,24 @@
       | center => fib0
       | contraction ((y', px') \as fib') =>
         \let | py : y0 = y' => pmap f (inv px') *> finv y'
-             | qfib : DepPath py px0 px' => {?}
+             | qfib : DepPath py px0 px' =>  helper e px'
         \in DepPath.apap px0 px' {Fib e.f-1 x} (__, __) py qfib
-    }
+    } \where {
+    \func helper  (e : Equiv') {x : e.X} {y : e.Y} (p : f-1 y = x) : HelperT p =>
+      transport HelperT (inv_inv p) $ helper' $ inv p
+      \where {
+        \func HelperT (p' : f-1 y = x) => DepPath (pmap f (inv p) *> finv y) (invf x) p'
 
-  \func inverse (e : Equiv') : Equiv' e.f-1 \cowith
+        \func helper'  (px' : x = f-1 y) : DepPath (pmap f px' *> finv y) (invf x) (inv px') \elim px'
+          | idp => rewrite (idp_*> (finv y)) $ helper''
+
+        \func helper'' : DepPath {Y} {f (f-1 y)} {y}
+            {\lam y' => f-1 y' = f-1 y}
+            (finv y) (invf (f-1 y)) idp => {?}
+      }
+  }
+
+  \lemma inverse (e : Equiv') : Equiv' e.f-1 \cowith
     | contr (x : e.X) : Contr (Fib e.f-1 x) =>
     \let | y => f x
          | contr-y : Contr (Fib f y) => e.contr y
@@ -65,12 +78,12 @@
 
 \func \infixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
 
-\func d10' {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
-           (x : X) (p : a = x) (b : B x p):  B a idp \elim p
+\func contractAway {X : \Type} (a : X) (B : \Pi (x : X) -> (a = x) -> \Type)
+                   (x : X) (p : a = x) (b : B x p):  B a idp \elim p
   | idp => b \where {
   \func st => \Sigma (x : X) (p : a = x) (B x p)
 
-  \func sigma-f : st -> B a idp => \lam (x, p, b) => d10' a B x p b
+  \func sigma-f : st -> B a idp => \lam (x, p, b) => contractAway a B x p b
 
   \lemma equiv : Equiv' sigma-f => fromEquiv $
   \new QEquiv sigma-f {
@@ -83,6 +96,9 @@
         | idp => idp
     }
 }
+
+\lemma corContractAway {X : \Type} (a : X) (B : X -> \Type): Equiv' (contractAway.sigma-f a (\lam x _ => B x)) =>
+  contractAway.equiv a _
 
 \func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y))) =>
   {?}
