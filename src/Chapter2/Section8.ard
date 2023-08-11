@@ -1,0 +1,1 @@
+\func Tot {X : \Type} (Y : X -> \Type) : \Type => \Sigma (x : X) (Y x)

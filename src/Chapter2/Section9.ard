@@ -1,4 +1,6 @@
 \import Chapter2.Section7
+\import Chapter2.Section8
+\import Data.SubList
 \import Equiv.Univalence
 \import Function
 \import HLevel
@@ -100,18 +102,41 @@
 \lemma corContractAway {X : \Type} (a : X) (B : X -> \Type): Equiv' (contractAway.sigma-f a (\lam x _ => B x)) =>
   contractAway.equiv a _
 
-\func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y))) =>
-  {?}
---  fromEquiv $ =-to-Equiv $ pmap (\lam x => {?}
+\func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y))) \cowith
+  | f (x, b) => (e.f x, transport B (inv # e.invf x) b)
+  | contr (y, b) => \new Contr (Fib _ _) {
+    | center => ((e.f-1 y, b), {?})
+    | contraction => {?}
+  }
 
 \func exercise_12 {X Y : \Type} (e : X ~= Y) (B : X -> \Type) =>
-  fromEquiv $
+  \let B' => B o e.f-1
+  \in fromEquiv $
   \new QEquiv {\Sigma (x : X) (B x)} {\Sigma (y : Y) (B (e.f-1 y))} {
     | f (x, b) => (e.f x, transport B (inv (e.invf x)) b)
-    | ret (y, b) => (e.f-1 y, transport (\lam y => B (e.f-1 y)) idp b)
-    | ret_f (x, b) => {?}
-    | f_sec => {?}
-  }
+    | ret (y, b) => (e.f-1 y, b)
+    | ret_f (x, b) =>
+      \let | p1 : e.f-1 (e.f x) = x => e.invf x
+           | p2 : transport B p1 (transport B (inv p1) b) = b  => trans_inv B p1 b
+           | e : Equiv => sigmaEquiv B  (e.f-1 (e.f x), transport B (inv p1) b) (x, b)
+      \in e.ret (p1, p2)
+    | f_sec (y, b) =>
+      \let | p1 : e.f (e.f-1 y) = y => e.finv y
+           | u => transport B (inv (e.invf (e.f-1 y))) b
+           | p2 : transport B' p1 (transport B (inv (e.invf (e.f-1 y))) b) = b => {?}
+           | e : Equiv => sigmaEquiv B' (e.f (e.f-1 y), (transport B (inv (e.invf (e.f-1 y)))) b) (y, b)
+      \in e.ret (p1, p2)
+  } \where {
+  \func trans_inv {A : \Type} {a a' : A} (B : A -> \Type) (p : a = a') (b : B a') : transport B p (transport B (inv p) b) = b \elim p
+    | idp => idp
+}
+
+\func FiberWise {X : \Type} (Y Z : X -> \Type) => \Pi (x : X)  -> Y x -> Z x \where {
+  \func tot (f : FiberWise Y Z) (t : Tot Y) : Tot Z => \let (x, y) => t \in   (x, f x y)
+
+  \lemma tot-equiv (f : FiberWise Y Z) (equivs : \Pi (x : X) -> Equiv (f x)) : Equiv (tot f) => {?}
+}
+
 
 
 
