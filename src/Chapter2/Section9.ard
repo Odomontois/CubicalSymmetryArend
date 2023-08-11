@@ -1,5 +1,6 @@
 \import Chapter2.Section7
 \import Chapter2.Section8
+\import Chapter2.Section9
 \import Data.SubList
 \import Equiv.Univalence
 \import Function
@@ -34,9 +35,9 @@
          | p => fib.contraction (x, idp)
     \in pmap __.1 p
 } \where {
-  \lemma inverse' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
+  \lemma inverse'' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
 
-  \lemma inverse'' (e : Equiv') : Equiv' e.f-1 \cowith
+  \lemma inverse (e : Equiv') : Equiv' e.f-1 \cowith
     | contr (x : e.X) : Contr (Fib e.f-1 x) =>
     \let | y0 => f x
          | px0 : e.f-1 y0 = x => invf x
@@ -62,7 +63,7 @@
       }
   }
 
-  \lemma inverse (e : Equiv') : Equiv' e.f-1 \cowith
+  \lemma inverse' (e : Equiv') : Equiv' e.f-1 \cowith
     | contr (x : e.X) : Contr (Fib e.f-1 x) =>
     \let | y => f x
          | contr-y : Contr (Fib f y) => e.contr y
@@ -73,10 +74,13 @@
       | contraction ((y', px') \as fib') =>
         Fib.ext f-1 x fib fib' (py *> pmap f (inv px') *> finv y') $ {?}
     }
-}
 
-\func fromEquiv (q : Equiv): Equiv' q.f \cowith
-  | contr => Equiv=>contrFibers q
+  \use \coerce fromEquiv {X Y : \Type} {f : X -> Y} (q : Equiv f): Equiv' f \cowith
+    | contr => Equiv=>contrFibers q
+
+  \use \coerce fromQEquiv {X Y : \Type} {f : X -> Y} (q : QEquiv f): Equiv' f \cowith
+    | contr => Equiv=>contrFibers q
+}
 
 \func \infixl 5 ~= (X Y : \Type) => Equiv' {X} {Y}
 
@@ -87,16 +91,15 @@
 
   \func sigma-f : st -> B a idp => \lam (x, p, b) => contractAway a B x p b
 
-  \lemma equiv : Equiv' sigma-f => fromEquiv $
-  \new QEquiv sigma-f {
-    | ret b => (a, idp, b)
-    | ret_f (x, p, b) => equiv-ret-f x p b
-    | f_sec y => idp
+  \lemma equiv : Equiv' sigma-f => Equiv'.fromQEquiv
+    $ \new QEquiv sigma-f {
+        | ret b => (a, idp, b)
+        | ret_f (x, p, b) => equiv-ret-f x p b
+        | f_sec y => idp
+      } \where {
+    \func equiv-ret-f (x : X) (p : a = x) (b : B x p) : (a, idp, sigma-f (x, p, b)) = {st} (x, p, b) \elim p
+      | idp => idp
   }
-    \where {
-      \func equiv-ret-f (x : X) (p : a = x) (b : B x p) : (a, idp, sigma-f (x, p, b)) = {st} (x, p, b) \elim p
-        | idp => idp
-    }
 }
 
 \lemma corContractAway {X : \Type} (a : X) (B : X -> \Type): Equiv' (contractAway.sigma-f a (\lam x _ => B x)) =>
@@ -111,8 +114,7 @@
 
 \func exercise_12 {X Y : \Type} (e : X ~= Y) (B : X -> \Type) =>
   \let B' => B o e.f-1
-  \in fromEquiv $
-  \new QEquiv {\Sigma (x : X) (B x)} {\Sigma (y : Y) (B (e.f-1 y))} {
+  \in \new QEquiv {\Sigma (x : X) (B x)} {\Sigma (y : Y) (B (e.f-1 y))} {
     | f (x, b) => (e.f x, transport B (inv (e.invf x)) b)
     | ret (y, b) => (e.f-1 y, b)
     | ret_f (x, b) =>
@@ -132,10 +134,20 @@
 }
 
 \func FiberWise {X : \Type} (Y Z : X -> \Type) => \Pi (x : X)  -> Y x -> Z x \where {
-  \func tot (f : FiberWise Y Z) (t : Tot Y) : Tot Z => \let (x, y) => t \in   (x, f x y)
+  \func tot {X : \Type} {Y Z : X -> \Type} (f : FiberWise Y Z) (t : Tot Y) : Tot Z => \let (x, y) => t \in (x, f x y)
 
-  \lemma tot-equiv (f : FiberWise Y Z) (equivs : \Pi (x : X) -> Equiv (f x)) : Equiv (tot f) => {?}
+  \lemma tot-equiv {X : \Type} (Y Z : X -> \Type) (f : FiberWise Y Z) (equivs : \Pi (x : X) -> Equiv' (f x)) : Equiv' ft =>
+    Equiv'.fromQEquiv \new QEquiv ft ft-1 {
+      | ret_f (x, y) i => ((x, Equiv'.invf {equivs x} y i) : Tot Y)
+      | f_sec (x, z) i => ((x, Equiv'.finv {equivs x} z i) : Tot Z)
+    } \where {
+    \func ft : Tot Y -> Tot Z => FiberWise.tot f
+
+    \func ft-1 : Tot Z -> Tot Y => FiberWise.tot \lam x z => Equiv'.f-1 {equivs x} z
+  }
 }
+
+
 
 
 

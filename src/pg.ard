@@ -1,24 +1,8 @@
-\import Data.Bool
 \import Equiv
-\import Equiv.Univalence
-\import Function
-\import Function.Meta
-\import Logic
-\import Logic.Meta
-\import Meta
-\import Paths
-\import Paths.Meta
 
-\func K {X : \Type} (x : X) (p : x = x) : p = idp => {?}
-
-\lemma transeq {X : \Type} (B : X -> \Set) {x : X} (b : B x) (p : x = x) : transport B p b = b => rewrite K idp
-
-\func boolNotEq : Bool = Bool => QEquiv-to-= $
-\new QEquiv not not {
-  | ret_f x => cases x idp
-  | f_sec x => cases x idp
+\func one (x : \Sigma) => () \where {
+  \func two (y : \Sigma) (p : x = y) => three \where {
+    \func three (p' : x = y) => ()
+  }
 }
-
-\func lol : Empty => contradiction $ (transeq id false boolNotEq : true = false)
-
 
