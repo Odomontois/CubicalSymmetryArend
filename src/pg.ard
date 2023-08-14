@@ -1,8 +1,19 @@
 \import Equiv
+\import Function
+\import Homotopy.Fibration
+\import Meta
+\import Paths
+\import Paths.Meta
 
-\func one (x : \Sigma) => () \where {
-  \func two (y : \Sigma) (p : x = y) => three \where {
-    \func three (p' : x = y) => ()
+\func ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv => \new QEquiv {T1} {T2} {
+  | f (x, p) => ((f x, p), (x, idp))
+  | ret ((y, p), (x, p')) => (x, pmap g p' *> p)
+  | ret_f (x, p) => rewrite idp_*> idp
+  | f_sec t => \case \elim t \with{
+    | ((y, p), (x, p')) => id ( \сase \elim p, p' \with { | idp, idp =>  {?} })
   }
-}
+} \where {
+  \func T1 => Fib (g o f) z
 
+  \func T2 => \Sigma (w : Fib g z) (Fib f w.1)
+}

@@ -147,6 +147,76 @@
   }
 }
 
+\lemma ex18 (X : \Type) : Equiv' t \cowith
+  | contr f => \new Contr {
+    | center => (f (), idp)
+    | contraction ((x, p) \as fib) i => ((inv p i (), {?}) : Fib t f)
+  } \where {
+  \func t (x : X) (_ : \Sigma) => x
+}
+
+\lemma ex18' (X : \Type) : Equiv' t => Equiv'.fromQEquiv \new QEquiv t {
+  | ret f => f ()
+  | ret_f x => idp
+  | f_sec f => idp
+}
+  \where {
+    \func t (x : X) (_ : \Sigma) => x
+  }
+
+\lemma ex19 (X : \Type) : Equiv t \cowith
+  | ret => t-1
+  | sec => t-1
+  | ret_f _ => idp
+  | f_sec _ => idp
+  \where {
+    \func T => \Sigma X (\Sigma)
+
+    \func t (p : T) : X => p.1
+
+    \func t-1 (x : X) : T => (x, ())
+  }
+
+\lemma ex20 (X Y : \Type) (Z : Y -> \Type) : Equiv' t => Equiv'.fromQEquiv \new QEquiv t {
+  | ret (y, (x, z)) => (x, (y, z))
+  | ret_f _ => idp
+  | f_sec _ => idp
+} \where {
+  \func T1 => \Sigma X (\Sigma (y : Y) (Z y))
+
+  \func T2 => \Sigma (y : Y) (\Sigma X (Z y))
+
+  \func t : T1 -> T2 => \lam (x, (y, z)) => (y, (x, z))
+}
+
+\lemma ex21 (X Y : \Type) (Z : X -> Y -> \Type) : Equiv' t => Equiv'.fromQEquiv \new QEquiv t {
+  | ret (x, (y, z))=> (y, (x, z))
+  | ret_f _ => idp
+  | f_sec _ => idp
+} \where {
+  \func T1 => \Sigma (x : X) (\Sigma (y : Y) (Z x y))
+
+  \func T2 => \Sigma (y : Y) (\Sigma (x : X) (Z x y))
+
+  \func t : T1 -> T2 => \lam (x, (y, z)) => (y, (x, z))
+}
+
+\lemma ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv' t => Equiv'.fromQEquiv \new QEquiv t {
+  | ret ((y, p), (x, p')) => (x, pmap g p' *> p)
+  | ret_f t =>  rewrite idp_*> idp
+  | f_sec t => \case \elim t \with{
+    | ((y, p), (x, p')) => fseq_q x y p p'
+  }
+} \where {
+  \func T1 => Fib (g o f) z
+
+  \func T2 => \Sigma (w : Fib g z) (Fib f w.1)
+
+  \func t : T1 -> T2 => \lam (x, p) => ((f x, p), (x, idp))
+
+  \func fseq_q (x : X) (y : Y) (p : g y = z) (p' : f x = y) : ((f x, pmap g p' *> p), (x, idp)) = {T2} ((y, p), (x, p')) \elim p, p'
+    | idp, idp => idp
+}
 
 
 
