@@ -2,6 +2,7 @@
 
 \func DepPath {X : \Type} {x x' : X} {Y : X -> \Type} (p : x = x') (y : Y x) (y' : Y x'): \Type \elim p
   | idp => y = y' \where {
+  \func Of (Y : X -> \Type) (p : x = x') (y : Y x) (y' : Y x') => DepPath p y y'
 
   \func pe (p : x = x'): Path (\lam i => Y (p @ i)) y y' = DepPath p y y' \elim p
     | idp => idp
@@ -15,9 +16,7 @@
     \func idl (p : x = x') (q : DepPath p y y') : dcomp p idp q idp = q => idp
   }
 
-
-
-\func dinv (p : x = x') (q : DepPath p y y') : DepPath (inv p) y' y \elim p
+  \func dinv (p : x = x') (q : DepPath p y y') : DepPath (inv p) y' y \elim p
     | idp => inv q
 
   \func apd (p : x = x') (f : \Pi(x : X) -> Y x) : DepPath p (f x) (f x') \elim p

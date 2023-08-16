@@ -1,0 +1,35 @@
+\import Chapter2.Section7
+\import Equiv
+\import Meta
+\import Paths
+
+\func Pair {X : \Type} (Y : X -> \Type) => \Sigma (x' : X) (Y x')
+
+\func pair {X : \Type} (Y : X -> \Type) (x : X) (y : Y x) : Pair Y => (x, y)
+
+\func sigmaExt {X : \Type} (Y : X -> \Type) (s s' : Pair Y) (p : PairId s s'): s = s' =>
+  DepPath.apap s.2 s'.2 (pair Y) p.1 p.2 \where {
+  \func PairId(s s' : Pair Y) => \Sigma (p : s.1 = s'.1) (DepPath.Of Y p s.2 s'.2)
+
+  \func of_idp (y' : Y s.1) (q : s.2 = y'): sigmaExt Y s (s.1, y') (idp, q) = pmap (pair Y s.1) q \elim q
+    | idp => idp
+
+  \func rev(s s' : Pair Y) (p : s = s') : PairId s s' \elim p
+    | idp => (idp, idp)
+
+  \lemma isEquiv : Equiv (sigmaExt Y s s') => \new QEquiv _ (rev s s') {
+    | ret_f (p, q) => ret-f s.1 s'.1 s.2 s'.2 p q
+    | f_sec => f-seq s s'
+  } \where {
+    \func ret-f (x x' : X) (y : Y x) (y' : Y x') (p : x = x') (q : DepPath.Of Y p y y') :
+      rev (x, y) (x', y') (sigmaExt Y (x, y) (x', y') (p, q)) = (p, q) \elim p, q
+      | idp, idp => idp
+
+    \func f-seq (s s' : Pair Y) (p : s = s') : sigmaExt Y s s' (rev s s' p) = p \elim p
+      | idp => idp
+  }
+}
+
+
+
+

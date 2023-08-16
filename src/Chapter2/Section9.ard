@@ -189,7 +189,7 @@
   \func t : T1 -> T2 => \lam (x, (y, z)) => (y, (x, z))
 }
 
-\lemma ex21 (X Y : \Type) (Z : X -> Y -> \Type) : Equiv' t => Equiv'.fromQEquiv \new QEquiv t {
+\lemma ex21 (X Y : \Type) (Z : X -> Y -> \Type) : Equiv t => \new QEquiv t {
   | ret (x, (y, z))=> (y, (x, z))
   | ret_f _ => idp
   | f_sec _ => idp
@@ -201,7 +201,7 @@
   \func t : T1 -> T2 => \lam (x, (y, z)) => (y, (x, z))
 }
 
-\lemma ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv' t => Equiv'.fromQEquiv \new QEquiv t {
+\lemma ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv t => \new QEquiv t {
   | ret ((y, p), (x, p')) => (x, pmap g p' *> p)
   | ret_f t =>  rewrite idp_*> idp
   | f_sec t => \case \elim t \with{
@@ -216,6 +216,18 @@
 
   \func fseq_q (x : X) (y : Y) (p : g y = z) (p' : f x = y) : ((f x, pmap g p' *> p), (x, idp)) = {T2} ((y, p), (x, p')) \elim p, p'
     | idp, idp => idp
+}
+
+\func ex23 {X Y Z : \Type} (f : X -> Z) (g : Y -> Z) : QEquiv {T1} {T2} \cowith
+  | f => {?}
+  | ret => {?}
+  | ret_f => {?}
+  | f_sec => {?} \where {
+  \func T1 => \Sigma (h : X -> Y) (f = g o h)
+
+  \func T2 => \Pi (x : X) ->  \Sigma (y : Y) (f x = g y)
+
+  \func u : T1 -> T2 => \lam (h, p) => {?}
 }
 
 

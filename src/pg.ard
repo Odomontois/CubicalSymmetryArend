@@ -1,19 +1,25 @@
+\import Data.List
 \import Equiv
 \import Function
+\import Function.Meta
 \import Homotopy.Fibration
 \import Meta
 \import Paths
 \import Paths.Meta
 
-\func ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv => \new QEquiv {T1} {T2} {
-  | f (x, p) => ((f x, p), (x, idp))
+\lemma ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv t => \new QEquiv t {
   | ret ((y, p), (x, p')) => (x, pmap g p' *> p)
-  | ret_f (x, p) => rewrite idp_*> idp
-  | f_sec t => \case \elim t \with{
-    | ((y, p), (x, p')) => id ( \сase \elim p, p' \with { | idp, idp =>  {?} })
-  }
+  | ret_f u => unfold t $ rewrite idp_*> {?}
+  | f_sec _ => {?}
 } \where {
   \func T1 => Fib (g o f) z
 
   \func T2 => \Sigma (w : Fib g z) (Fib f w.1)
+
+  \func t : T1 -> T2 => \lam (x, p) => ((f x, p), (x, idp))
+
+  \func ret_f_eq (x : X) (p : g (f x) = z): p =  {?} => {?}
 }
+\data  Shuffle {A : \Type} (xs xs' : List A) \elim xs
+  | nil => snil (xs' = nil)
+  | head :: rest => scons (i : Nat) (Shuffle rest (replace xs' i 1 nil))
