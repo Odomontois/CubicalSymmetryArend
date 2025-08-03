@@ -1,0 +1,8 @@
+\data D (A B : \Type)
+  | a A
+  | b B
+
+
+\func da-injective {A B : \Type} (a1 a2  : A) (p : D.a a1 = {D A B} D.a a2) : a1 = a2 => {?}
+  
+
