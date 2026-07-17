@@ -9,15 +9,15 @@
 
 \func sigmaExt {X : \Type} (Y : X -> \Type) (s s' : Pair Y) (p : PairId s s'): s = s' =>
   DepPath.apap (pair Y) p.1 p.2 \where {
-  \func PairId(s s' : Pair Y) => \Sigma (p : s.1 = s'.1) (DepPath.Of Y p s.2 s'.2)
+  \func PairId (s s' : Pair Y) => \Sigma (p : s.1 = s'.1) (DepPath.Of Y p s.2 s'.2)
 
   \func of_idp (y' : Y s.1) (q : s.2 = y'): sigmaExt Y s (s.1, y') (idp, q) = pmap (pair Y s.1) q \elim q
     | idp => idp
 
-  \func rev {X : \Type} {Y : X -> \Type} (s s' : Pair Y) (p : s = s') : PairId {X} {Y} s s' \elim p
+  \func rev (s s' : Pair Y) (p : s = s') : PairId {X} {Y} s s' \elim p
     | idp => (idp, idp)
 
-  \lemma isEquiv {X : \Type }{Y : X -> \Type }{s s' : Pair Y} : Equiv (sigmaExt Y s s') => \new QEquiv _ (rev s s') {
+  \lemma isEquiv : Equiv (sigmaExt Y s s') => \new QEquiv _ (rev s s') {
     | ret_f t => \case \elim s, \elim s', \elim t \with {
     (x, y), (x', y') , (idp, idp) => idp
     }

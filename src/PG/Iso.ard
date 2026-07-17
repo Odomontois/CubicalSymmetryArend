@@ -8,6 +8,4 @@
   \func Bijective => \Sigma Injective Surjective
 
   \func Is_iso => \Sigma (g : B -> A) (f o g = id) (g o f = id)
-
-
 }

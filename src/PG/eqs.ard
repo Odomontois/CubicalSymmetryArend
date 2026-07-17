@@ -1,0 +1,40 @@
+\import Function.Meta
+\import Paths
+
+\class HasId {
+  | Id {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
+  | refl {A : \Type} {a : A} : Id a a
+  | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) (p : Id a a') : B a' p
+  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) : J B b refl = b
+
+  \func refl-eq {A : \Type} {a a' : A} (p : a = a'): Id a a' \elim p
+    | idp => refl
+
+  \func symm {A : \Type} {a a' : A}: Id a a' -> Id a' a =>
+    J (\lam ax _ => Id ax a) refl
+
+  \func trans {A : \Type} {a a' a'' : A}: Id a a' -> Id a' a'' -> Id a a'' =>
+    J (\lam ax _ => Id a ax)
+
+  \func ex1 {A : \Type}  {a b : A} (p : Id a b) : Id (trans p refl) p => refl-eq $ JE _ p
+  \func ex2 {A : \Type}  {a b : A} (p : Id a b) : Id (trans refl p) p =>
+    J (\lam (c : A) (q : Id a c) => Id (trans refl q) q) (ex1 refl) p
+
+
+}
+
+
+
+\func symm {A : \Type} (a a' : A) (p : a = a'): a' = a =>
+  Jl (\lam a'' _ => a'' = a) idp p
+
+\func symm' {A : \Type} (a a' : A) (p : a = a'): a' = a \elim p
+  | idp => idp
+
+\func trans {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' =>
+  Jl (\lam a3 _ => a = a3) p p'
+
+\func trans' {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' \elim p'
+  | idp => p
+
+-- | exersize 1 prove that trans_a
