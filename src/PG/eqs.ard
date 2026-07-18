@@ -34,12 +34,15 @@
            | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => ex1:right-unit a-c ~* b-c-refl
       \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
 
-  \func ex4:inv {A : \Type} {a b : A} (a-b : Id a b) : symm a-b ~* a-b =~ refl =>
+  \func ex4:inv-left {A : \Type} {a b : A} (a-b : Id a b) : symm a-b ~* a-b =~ refl =>
     \let pr : symm refl ~* refl =~ refl => ex1:right-unit _ ~* symm.rfl
     \in J' (\lam _ p => symm p ~* p =~ refl) a-b pr
 
-  \func ex5:inv2 {A : \Type} {a b : A} (a-b : Id a b) : a-b ~* symm a-b =~ refl
+  \func ex5:inv-right {A : \Type} {a b : A} (a-b : Id a b) : a-b ~* symm a-b =~ refl
     =>  J' (\lam _ p => p ~* symm p =~ refl) a-b $ ex2:left-unit _ ~* symm.rfl
+
+  \func ex6:inv-inv {A : \Type} {a b : A} (a-b : Id a b) : symm (symm a-b) =~ a-b
+    => J' (\lam _ p => symm (symm p) =~ p) a-b $ J (\lam p _ => symm p =~ refl) symm.rfl (symm symm.rfl)
 
 }
 
