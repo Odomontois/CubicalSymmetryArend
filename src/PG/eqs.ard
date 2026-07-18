@@ -2,7 +2,7 @@
 \import Paths
 
 \class HasId {
-  | Id {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
+  | Id \alias \infixr 3 =~ {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
   | refl {A : \Type} {a : A} : Id a a
   | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) (p : Id a a') : B a' p
   | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) : J B b refl = b
@@ -13,12 +13,19 @@
   \func symm {A : \Type} {a a' : A}: Id a a' -> Id a' a =>
     J (\lam ax _ => Id ax a) refl
 
-  \func trans {A : \Type} {a a' a'' : A}: Id a a' -> Id a' a'' -> Id a a'' =>
+  \func trans \alias \infixr 5 ~*> {A : \Type} {a a' a'' : A}: Id a a' -> Id a' a'' -> Id a a'' =>
     J (\lam ax _ => Id a ax)
 
-  \func ex1 {A : \Type}  {a b : A} (p : Id a b) : Id (trans p refl) p => refl-eq $ JE _ p
-  \func ex2 {A : \Type}  {a b : A} (p : Id a b) : Id (trans refl p) p =>
-    J (\lam (c : A) (q : Id a c) => Id (trans refl q) q) (ex1 refl) p
+  \func ex1:right-unit {A : \Type}  {a b : A} (p : Id a b) : p ~*> refl =~ p => refl-eq $ JE _ p
+  \func ex2:left-unit {A : \Type}  {a b : A} (p : Id a b) : refl ~*> p =~ p =>
+    J (\lam (c : A) (q : Id a c) => Id (trans refl q) q) (ex1:right-unit refl) p
+  \func ex3:associativity {A : \Type} {a b c d : A} (a-b : Id a b) (b-c : Id b c) (c-d : Id c d)
+    : (a-b ~*> b-c) ~*> c-d =~ a-b ~*> (b-c ~*> c-d)
+    =>
+      \let | a-c => a-b ~*> b-c
+           | eqq : a-c ~*> refl =~ a-b ~*> (b-c ~*> refl) =>
+        ex1:right-unit a-c ~*> J (\lam p _ => a-c =~ a-b ~*> p) refl (symm $ ex1:right-unit b-c)
+      \in J (\lam _ p => a-c ~*> p =~ a-b ~*> (b-c ~*> p)) eqq c-d
 
 
 }
