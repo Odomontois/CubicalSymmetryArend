@@ -1,4 +1,5 @@
 \import Function.Meta
+\import Meta
 \import Paths
 
 \class HasId {
@@ -7,26 +8,35 @@
   | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) (p : Id a a') : B a' p
   | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) : J B b refl = b
 
+ -- | J with arguments inversed
+  \func J' {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (p : Id a a') (b : B a refl) : B a' p => J B b p
+  -- | refl with explicit argument
+  \func refl' {A : \Type} (a : A) : Id a a => refl
   \func refl-eq {A : \Type} {a a' : A} (p : a = a'): Id a a' \elim p
     | idp => refl
 
   \func symm {A : \Type} {a a' : A}: Id a a' -> Id a' a =>
-    J (\lam ax _ => Id ax a) refl
+    J (\lam ax _ => Id ax a) refl \where {
+   \func rfl : symm refl =~ refl' a => refl-eq $ JE _ _
+  }
 
-  \func trans \alias \infixr 5 ~*> {A : \Type} {a a' a'' : A}: Id a a' -> Id a' a'' -> Id a a'' =>
+  \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: Id a a' -> Id a' a'' -> Id a a'' =>
     J (\lam ax _ => Id a ax)
 
-  \func ex1:right-unit {A : \Type}  {a b : A} (p : Id a b) : p ~*> refl =~ p => refl-eq $ JE _ p
-  \func ex2:left-unit {A : \Type}  {a b : A} (p : Id a b) : refl ~*> p =~ p =>
+  \func ex1:right-unit {A : \Type}  {a b : A} (p : Id a b) : p ~* refl =~ p => refl-eq $ JE _ p
+  \func ex2:left-unit {A : \Type}  {a b : A} (p : Id a b) : refl ~* p =~ p =>
     J (\lam (c : A) (q : Id a c) => Id (trans refl q) q) (ex1:right-unit refl) p
   \func ex3:associativity {A : \Type} {a b c d : A} (a-b : Id a b) (b-c : Id b c) (c-d : Id c d)
-    : (a-b ~*> b-c) ~*> c-d =~ a-b ~*> (b-c ~*> c-d)
+    : (a-b ~* b-c) ~* c-d =~ a-b ~* (b-c ~* c-d)
     =>
-      \let | a-c => a-b ~*> b-c
-           | eqq : a-c ~*> refl =~ a-b ~*> (b-c ~*> refl) =>
-        ex1:right-unit a-c ~*> J (\lam p _ => a-c =~ a-b ~*> p) refl (symm $ ex1:right-unit b-c)
-      \in J (\lam _ p => a-c ~*> p =~ a-b ~*> (b-c ~*> p)) eqq c-d
+      \let | a-c => a-b ~* b-c
+           | b-c-refl : a-c =~ a-b ~* (b-c ~* refl) =>  J (\lam p _ => a-c =~ a-b ~* p) refl (symm $ ex1:right-unit b-c)
+           | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => ex1:right-unit a-c ~* b-c-refl
+      \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
 
+  \func ex4:inv {A : \Type} {a b : A} (a-b : Id a b) : symm a-b ~* a-b =~ refl =>
+    \let pr : symm refl ~* refl =~ refl => ex1:right-unit _ ~* symm.rfl
+    \in J (\lam _ p => symm p ~* p =~ refl) pr a-b
 
 }
 
