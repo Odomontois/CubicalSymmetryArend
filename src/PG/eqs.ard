@@ -53,7 +53,15 @@
          | b-c-refl : a-c =~ a-b ~* (b-c ~* refl) => J (\lam (p : b =~ c) _ => a-c =~ a-b ~* p) refl (symm $ right-refl b-c)
          | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => right-refl a-c ~* b-c-refl
     \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
+
+ \func ap {X Y : \Type} {f : X -> Y} {x x' : X} (p : x =~ x') : f x =~ f x' =>
+   J (\lam x* _ => f x =~ f x*) refl p
 }
+
+\instance path-id : Id (=)
+  | refl => idp
+  | J B b => Jl B b
+  | JE _ _ => idp
 
 \record UsingId {P : Id} {
   \func id \alias \infixr 3 =~ => P.id
@@ -83,19 +91,3 @@
     \func ex6:inv-inv  (a-b : id a b) : symm (symm a-b) =~ a-b => symm.cancel
   }
 }
-
-
---
--- \func symm {A : \Type} (a a' : A) (p : a = a'): a' = a =>
---   Jl (\lam a'' _ => a'' = a) idp p
---
--- \func symm' {A : \Type} (a a' : A) (p : a = a'): a' = a \elim p
---   | idp => idp
---
--- \func trans {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' =>
---   Jl (\lam a3 _ => a = a3) p p'
---
--- \func trans' {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' \elim p'
---   | idp => p
-
--- | exersize 1 prove that trans_a
