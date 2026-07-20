@@ -2,63 +2,100 @@
 \import Meta
 \import Paths
 
-\class HasId {
-  | Id \alias \infixr 3 =~ {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
-  | refl {A : \Type} {a : A} : Id a a
-  | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) (p : Id a a') : B a' p
-  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (b : B a refl) : J B b refl = b
+\class Id {
+  | \classifying path {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
 
- -- | J with arguments inversed
-  \func J' {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : Id a a') -> \Type) (p : Id a a') (b : B a refl) : B a' p => J B b p
+  | refl {A : \Type} {a : A} : path a a
+  | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : path a a') -> \Type) (b : B a refl) (p : path a a') : B a' p
+  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : path a a') -> \Type) (b : B a refl) : J B b refl = b
+
+  \func id \alias \infixr 3 =~ => path
+
+  -- | J with arguments inversed
+
+  \func J' {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : id a a') -> \Type) (p : id a a') (b : B a refl) : B a' p =>
+    J B b p
+
   -- | refl with explicit argument
-  \func refl' {A : \Type} (a : A) : Id a a => refl
-  \func refl-eq {A : \Type} {a a' : A} (p : a = a'): Id a a' \elim p
+
+  \func refl' {A : \Type} (a : A) : id a a => refl
+
+  \func refl-eq {A : \Type} {a a' : A} (p : a = a'): id a a' \elim p
     | idp => refl
 
-  \func symm {A : \Type} {a a' : A}: Id a a' -> Id a' a =>
-    J (\lam ax _ => Id ax a) refl \where {
-   \func rfl : symm refl =~ refl' a => refl-eq $ JE _ _
+  \func symm {A : \Type} {a b : A} (a-b : id a b) : id b a =>
+    J (\lam ax _ => id ax a) refl a-b \where {
+    \func left : symm a-b ~* a-b =~ refl =>
+      \let pr : symm refl ~* refl =~ refl => right-refl _ ~* symm.rfl
+      \in J' (\lam _ p => symm p ~* p =~ refl) a-b pr
+
+    \func right : a-b ~* symm a-b =~ refl =>
+      J' (\lam _ p => p ~* symm p =~ refl) a-b $ left-refl _ ~* symm.rfl
+
+    \func rfl : symm refl =~ refl' a => refl-eq $ JE _ _
+
+    \func cancel : symm (symm a-b) =~ a-b =>
+      J' (\lam (_ : A) (p : a =~ _) => symm (symm p) =~ p) a-b $
+      J (\lam (p : a =~ a) _ => symm p =~ refl) symm.rfl (symm symm.rfl)
   }
 
-  \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: Id a a' -> Id a' a'' -> Id a a'' =>
-    J (\lam ax _ => Id a ax)
+  \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: id a a' -> id a' a'' -> id a a'' =>
+    J (\lam ax _ => id a ax)
 
-  \func ex1:right-unit {A : \Type}  {a b : A} (p : Id a b) : p ~* refl =~ p => refl-eq $ JE _ p
-  \func ex2:left-unit {A : \Type}  {a b : A} (p : Id a b) : refl ~* p =~ p =>
-    J (\lam (c : A) (q : Id a c) => Id (trans refl q) q) (ex1:right-unit refl) p
-  \func ex3:associativity {A : \Type} {a b c d : A} (a-b : Id a b) (b-c : Id b c) (c-d : Id c d)
-    : (a-b ~* b-c) ~* c-d =~ a-b ~* (b-c ~* c-d)
-    =>
-      \let | a-c => a-b ~* b-c
-           | b-c-refl : a-c =~ a-b ~* (b-c ~* refl) =>  J (\lam p _ => a-c =~ a-b ~* p) refl (symm $ ex1:right-unit b-c)
-           | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => ex1:right-unit a-c ~* b-c-refl
-      \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
+  \func right-refl {A : \Type} {x y : A} (x-y : id x y): x-y ~* refl =~ x-y => refl-eq $ JE _ x-y
 
-  \func ex4:inv-left {A : \Type} {a b : A} (a-b : Id a b) : symm a-b ~* a-b =~ refl =>
-    \let pr : symm refl ~* refl =~ refl => ex1:right-unit _ ~* symm.rfl
-    \in J' (\lam _ p => symm p ~* p =~ refl) a-b pr
+  \func left-refl {A : \Type} {x y : A} (x-y : id x y) : refl ~* x-y =~ x-y =>
+    J (\lam (c : A) (q : id x c) => id (refl ~* q) q) (right-refl refl) x-y
 
+  \func assoc {A : \Type} {a b c d : A} (a-b : id a b) (b-c : id b c) (c-d : id c d)
+    : (a-b ~* b-c) ~* c-d =~ a-b ~* (b-c ~* c-d) =>
+    \let | a-c => a-b ~* b-c
+         | b-c-refl : a-c =~ a-b ~* (b-c ~* refl) => J (\lam (p : b =~ c) _ => a-c =~ a-b ~* p) refl (symm $ right-refl b-c)
+         | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => right-refl a-c ~* b-c-refl
+    \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
+}
 
-  \func ex5:inv-right {A : \Type} {a b : A} (a-b : Id a b) : a-b ~* symm a-b =~ refl
-    =>  J' (\lam _ p => p ~* symm p =~ refl) a-b $ ex2:left-unit _ ~* symm.rfl
+\record UsingId {P : Id} {
+  \func id \alias \infixr 3 =~ => P.id
+}
 
-  \func ex6:inv-inv {A : \Type} {a b : A} (a-b : Id a b) : symm (symm a-b) =~ a-b
-    => J' (\lam _ p => symm (symm p) =~ p) a-b $ J (\lam p _ => symm p =~ refl) symm.rfl (symm symm.rfl)
+\open Id \using (symm) \hiding (id, =~)
 
+\record Section5  {
+  \record exercises \extends UsingId {
+    | A : \Type
+    | a : A
+    | b : A
+    | a-b : a =~ b
+
+    \func ex1:right-unit {x y : A} (x-y : id x y): x-y ~* refl =~ x-y => right-refl x-y
+
+    \func ex2:left-unit {x y : A} (x-y : P.id x y) : refl ~* x-y =~ x-y =>
+      J (\lam (c : A) (q : id x c) => id (P.refl ~* q) q) (ex1:right-unit refl) x-y
+
+    \func ex3:associativity  {c d : A} (a-b : P.id a b) (b-c : P.id b c) (c-d : P.id c d)
+      : (a-b ~* b-c) ~* c-d =~ a-b ~* (b-c ~* c-d) => assoc a-b b-c c-d
+
+    \func ex4:inv-left (a-b : id a b) : symm a-b ~* a-b =~ refl => symm.left
+
+    \func ex5:inv-right  (a-b : id a b) : a-b ~* symm a-b =~ refl => symm.right
+
+    \func ex6:inv-inv  (a-b : id a b) : symm (symm a-b) =~ a-b => symm.cancel
+  }
 }
 
 
-
-\func symm {A : \Type} (a a' : A) (p : a = a'): a' = a =>
-  Jl (\lam a'' _ => a'' = a) idp p
-
-\func symm' {A : \Type} (a a' : A) (p : a = a'): a' = a \elim p
-  | idp => idp
-
-\func trans {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' =>
-  Jl (\lam a3 _ => a = a3) p p'
-
-\func trans' {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' \elim p'
-  | idp => p
+--
+-- \func symm {A : \Type} (a a' : A) (p : a = a'): a' = a =>
+--   Jl (\lam a'' _ => a'' = a) idp p
+--
+-- \func symm' {A : \Type} (a a' : A) (p : a = a'): a' = a \elim p
+--   | idp => idp
+--
+-- \func trans {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' =>
+--   Jl (\lam a3 _ => a = a3) p p'
+--
+-- \func trans' {A : \Type} (a a' a'' : A) (p : a = a') (p' : a' = a'') : a = a'' \elim p'
+--   | idp => p
 
 -- | exersize 1 prove that trans_a
