@@ -86,7 +86,10 @@
     \func trans* (p : x =~ x') {x'' : X} (p' : x' =~ x'') : trp (p ~* p') T =~ trp p' T o trp p T =>
       J' (\lam _ p* => trp (p ~* p*) T =~ trp p* T o trp p T) p'
         $ ap (trp __ T) (right-refl p)
-            ~* (symm $ ap (\lam f => f o trp p T) (refl*' x'))
+            ~* (symm $ ap (\lam f => f o trp p T) J-eq)
+
+    \func const {Y : \Type}: trp p (\lam _ => Y) =~ (\lam y => y) =>
+      J' (\lam _ p* => trp p* (\lam _ => Y) =~ (\lam y => y) ) p J-eq
   }
 }
 
