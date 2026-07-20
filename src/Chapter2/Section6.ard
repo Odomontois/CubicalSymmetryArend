@@ -1,0 +1,14 @@
+\import Paths
+
+\func ap {X Y : \Type} (f : X -> Y) {x x' : X} (p : x = x') : f x = f x' \elim p
+  | idp => idp
+  \where {
+    \func refl* : ap f (idp {_} {x}) = idp => idp
+
+    \func trans* (p : x = x') {x'' : X} (p' : x' = x'') : ap f (p *> p') = ap f p *> ap f p' \elim p, p'
+      | idp, idp => idp
+
+    \func symm*  (p : x = x') : ap f (inv p) = inv (ap f p)
+      | idp => idp
+  }
+
