@@ -1,19 +1,27 @@
 \import Function.Meta
 \import Meta
 \import Paths
+\import Function \hiding (id)
 
 \class Id {
   | \classifying path {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
   | refl {A : \Type} {a : A} : path a a
-  | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : path a a') -> \Type) (b : B a refl) (p : path a a') : B a' p
-  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : path a a') -> \Type) (b : B a refl) : J B b refl = b
+  | J {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : path a a*) -> \Type) (b : B a refl) (p : path a a') : B a' p
+  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p* : path a a') -> \Type) (b : B a refl) : J B b refl = b
 
   \func id \alias \infixr 3 =~ => path
 
   -- | J with arguments inversed
 
-  \func J' {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : id a a') -> \Type) (p : id a a') (b : B a refl) : B a' p =>
+  \func J' {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : id a a*) -> \Type) (p : id a a') (b : B a refl) : B a' p =>
     J B b p
+
+  \func JJ {A B : \Type} {a a' : A} {b b' : B} (C : \Pi (a* : A) (b* : B) (p* : a =~ a*) (q* : b =~ b*) -> \Type)
+           (p : a =~ a') (q : b =~ b') (c : C a b refl refl) : C a' b' p q =>
+    J' (\lam b* q* => C a' b* p q* ) q $ J' (\lam a* p* => C a* b p* refl) p c
+
+  \func J-eq {A : \Type} {a : A} {B : \Pi (a' : A) (p : path a a') -> \Type} {b : B a refl} : J B b refl =~ b =>
+    refl-eq $ JE B b
 
   -- | refl with explicit argument
 
@@ -31,7 +39,7 @@
     \func right : a-b ~* symm a-b =~ refl =>
       J' (\lam _ p => p ~* symm p =~ refl) a-b $ left-refl _ ~* symm.refl*
 
-    \func refl* : symm refl =~ refl' a => refl-eq $ JE _ _
+    \func refl* : symm refl =~ refl' a => J-eq
 
     \func cancel : symm (symm a-b) =~ a-b =>
       J' (\lam (_ : A) (p : a =~ _) => symm (symm p) =~ p) a-b $
@@ -41,7 +49,7 @@
   \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: id a a' -> id a' a'' -> id a a'' =>
     J (\lam ax _ => id a ax)
 
-  \func right-refl {A : \Type} {x y : A} (x-y : id x y): x-y ~* refl =~ x-y => refl-eq $ JE _ x-y
+  \func right-refl {A : \Type} {x y : A} (x-y : id x y): x-y ~* refl =~ x-y => J-eq
 
   \func left-refl {A : \Type} {x y : A} (x-y : id x y) : refl ~* x-y =~ x-y =>
     J (\lam (c : A) (q : id x c) => id (refl ~* q) q) (right-refl refl) x-y
@@ -53,21 +61,33 @@
          | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => right-refl a-c ~* b-c-refl
     \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
 
- \func ap {X Y : \Type} (f : X -> Y) {x x' : X} (p : x =~ x') : f x =~ f x' =>
-   J (\lam x* _ => f x =~ f x*) refl p \where {
-   \func refl* : ap f (refl' x) =~ refl => refl-eq $ JE _ _
-   \func refl*' (x : X) : ap f (refl' x) =~ refl => refl-eq $ JE _ _
+  \func ap {X Y : \Type} (f : X -> Y) {x x' : X} (p : x =~ x') : f x =~ f x' =>
+    J (\lam x* _ => f x =~ f x*) refl p \where {
+    \func refl* : ap f (refl' x) =~ refl => J-eq
 
-   \func trans* {x'' : X} (p' : x' =~ x'') : ap f (p ~* p') =~ ap f p ~* ap f p'
-      => J' (\lam (x* : X) (p* : x' =~ x*) => ap f (p ~* p*) =~ ap f p ~* ap f p*) p'
-      $ ap (ap f) (right-refl p)
-          ~* (symm $ right-refl _)
-               ~* ap (ap f p ~* __) (symm $ refl*' x')
+    \func refl*' (x : X) : ap f (refl' x) =~ refl => J-eq
 
-   \func symm* : ap f (symm p) =~ symm (ap f p)
-     => J' (\lam _ p* => ap f (symm p*) =~ symm (ap f p*) ) p
-         $ ap (ap f) symm.refl*  ~* refl* ~* (symm symm.refl*) ~* ap symm (symm refl*)
- }
+    \func trans* {x'' : X} (p' : x' =~ x'') : ap f (p ~* p') =~ ap f p ~* ap f p' =>
+      J' (\lam (x* : X) (p* : x' =~ x*) => ap f (p ~* p*) =~ ap f p ~* ap f p*) p'
+        $ ap (ap f) (right-refl p)
+            ~* (symm $ right-refl _)
+                 ~* ap (ap f p ~* __) (symm $ refl*' x')
+
+    \func symm* : ap f (symm p) =~ symm (ap f p) => J' (\lam _ p* => ap f (symm p*) =~ symm (ap f p*) ) p
+      $ ap (ap f) symm.refl*  ~* refl* ~* (symm symm.refl*) ~* ap symm (symm refl*)
+  }
+
+  \func trp {X : \Type} {x x' : X} (p : x =~ x') (T : X -> \Type) : T x -> T x' =>
+    J' (\lam x* _ => T x -> T x*) p (\lam x => x) \where {
+    \func refl* : trp (refl' x) T =~ (\lam x => x) => J-eq
+
+    \func refl*' (x : X) : trp (refl' x) T =~ (\lam x => x) => J-eq
+
+    \func trans* (p : x =~ x') {x'' : X} (p' : x' =~ x'') : trp (p ~* p') T =~ trp p' T o trp p T =>
+      J' (\lam _ p* => trp (p ~* p*) T =~ trp p* T o trp p T) p'
+        $ ap (trp __ T) (right-refl p)
+            ~* (symm $ ap (\lam f => f o trp p T) (refl*' x'))
+  }
 }
 
 \instance path-id : Id (=)
