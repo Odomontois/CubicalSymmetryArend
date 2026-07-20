@@ -4,7 +4,6 @@
 
 \class Id {
   | \classifying path {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
-
   | refl {A : \Type} {a : A} : path a a
   | J {A : \Type} {a a' : A} (B : \Pi (a' : A) (p : path a a') -> \Type) (b : B a refl) (p : path a a') : B a' p
   | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p : path a a') -> \Type) (b : B a refl) : J B b refl = b
@@ -26,17 +25,17 @@
   \func symm {A : \Type} {a b : A} (a-b : id a b) : id b a =>
     J (\lam ax _ => id ax a) refl a-b \where {
     \func left : symm a-b ~* a-b =~ refl =>
-      \let pr : symm refl ~* refl =~ refl => right-refl _ ~* symm.rfl
+      \let pr : symm refl ~* refl =~ refl => right-refl _ ~* symm.refl*
       \in J' (\lam _ p => symm p ~* p =~ refl) a-b pr
 
     \func right : a-b ~* symm a-b =~ refl =>
-      J' (\lam _ p => p ~* symm p =~ refl) a-b $ left-refl _ ~* symm.rfl
+      J' (\lam _ p => p ~* symm p =~ refl) a-b $ left-refl _ ~* symm.refl*
 
-    \func rfl : symm refl =~ refl' a => refl-eq $ JE _ _
+    \func refl* : symm refl =~ refl' a => refl-eq $ JE _ _
 
     \func cancel : symm (symm a-b) =~ a-b =>
       J' (\lam (_ : A) (p : a =~ _) => symm (symm p) =~ p) a-b $
-      J (\lam (p : a =~ a) _ => symm p =~ refl) symm.rfl (symm symm.rfl)
+      J (\lam (p : a =~ a) _ => symm p =~ refl) symm.refl* (symm symm.refl*)
   }
 
   \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: id a a' -> id a' a'' -> id a a'' =>
@@ -54,8 +53,21 @@
          | a-c-refl : a-c ~* refl =~ a-b ~* (b-c ~* refl) => right-refl a-c ~* b-c-refl
     \in J (\lam _ p => a-c ~* p =~ a-b ~* (b-c ~* p)) a-c-refl c-d
 
- \func ap {X Y : \Type} {f : X -> Y} {x x' : X} (p : x =~ x') : f x =~ f x' =>
-   J (\lam x* _ => f x =~ f x*) refl p
+ \func ap {X Y : \Type} (f : X -> Y) {x x' : X} (p : x =~ x') : f x =~ f x' =>
+   J (\lam x* _ => f x =~ f x*) refl p \where {
+   \func refl* : ap f (refl' x) =~ refl => refl-eq $ JE _ _
+   \func refl*' (x : X) : ap f (refl' x) =~ refl => refl-eq $ JE _ _
+
+   \func trans* {x'' : X} (p' : x' =~ x'') : ap f (p ~* p') =~ ap f p ~* ap f p'
+      => J' (\lam (x* : X) (p* : x' =~ x*) => ap f (p ~* p*) =~ ap f p ~* ap f p*) p'
+      $ ap (ap f) (right-refl p)
+          ~* (symm $ right-refl _)
+               ~* ap (ap f p ~* __) (symm $ refl*' x')
+
+   \func symm* : ap f (symm p) =~ symm (ap f p)
+     => J' (\lam _ p* => ap f (symm p*) =~ symm (ap f p*) ) p
+         $ ap (ap f) symm.refl*  ~* refl* ~* (symm symm.refl*) ~* ap symm (symm refl*)
+ }
 }
 
 \instance path-id : Id (=)
