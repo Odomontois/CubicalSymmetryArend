@@ -1,7 +1,7 @@
+\import Function
 \import Function.Meta
 \import Meta
 \import Paths
-\import Function \hiding (id)
 
 \class Id {
   | \classifying path {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
@@ -9,11 +9,11 @@
   | J {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : path a a*) -> \Type) (b : B a refl) (p : path a a') : B a' p
   | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p* : path a a') -> \Type) (b : B a refl) : J B b refl = b
 
-  \func id \alias \infixr 3 =~ => path
+  \private \func ident \alias \infixr 3 =~ => path
 
   -- | J with arguments inversed
 
-  \func J' {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : id a a*) -> \Type) (p : id a a') (b : B a refl) : B a' p =>
+  \func J' {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : a =~ a*) -> \Type) (p : a =~ a') (b : B a refl) : B a' p =>
     J B b p
 
   \func JJ {A B : \Type} {a a' : A} {b b' : B} (C : \Pi (a* : A) (b* : B) (p* : a =~ a*) (q* : b =~ b*) -> \Type)
@@ -25,13 +25,13 @@
 
   -- | refl with explicit argument
 
-  \func refl' {A : \Type} (a : A) : id a a => refl
+  \func refl' {A : \Type} (a : A) :  a =~ a => refl
 
-  \func refl-eq {A : \Type} {a a' : A} (p : a = a'): id a a' \elim p
+  \func refl-eq {A : \Type} {a a' : A} (p : a = a'): a =~ a' \elim p
     | idp => refl
 
-  \func symm {A : \Type} {a b : A} (a-b : id a b) : id b a =>
-    J (\lam ax _ => id ax a) refl a-b \where {
+  \func symm {A : \Type} {a b : A} (a-b : a =~ b) : b =~ a =>
+    J (\lam ax _ => ax =~ a) refl a-b \where {
     \func left : symm a-b ~* a-b =~ refl =>
       \let pr : symm refl ~* refl =~ refl => right-refl _ ~* symm.refl*
       \in J' (\lam _ p => symm p ~* p =~ refl) a-b pr
@@ -46,15 +46,15 @@
       J (\lam (p : a =~ a) _ => symm p =~ refl) symm.refl* (symm symm.refl*)
   }
 
-  \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: id a a' -> id a' a'' -> id a a'' =>
-    J (\lam ax _ => id a ax)
+  \func trans \alias \infixr 5 ~* {A : \Type} {a a' a'' : A}: a =~ a' -> a' =~ a'' -> a =~ a'' =>
+    J (\lam ax _ => a =~ ax)
 
-  \func right-refl {A : \Type} {x y : A} (x-y : id x y): x-y ~* refl =~ x-y => J-eq
+  \func right-refl {A : \Type} {x y : A} (x-y : x =~ y): x-y ~* refl =~ x-y => J-eq
 
-  \func left-refl {A : \Type} {x y : A} (x-y : id x y) : refl ~* x-y =~ x-y =>
-    J (\lam (c : A) (q : id x c) => id (refl ~* q) q) (right-refl refl) x-y
+  \func left-refl {A : \Type} {x y : A} (x-y : x =~ y) : refl ~* x-y =~ x-y =>
+    J (\lam (c : A) (q : x =~ c) => path (refl ~* q) q) (right-refl refl) x-y
 
-  \func assoc {A : \Type} {a b c d : A} (a-b : id a b) (b-c : id b c) (c-d : id c d)
+  \func assoc {A : \Type} {a b c d : A} (a-b : a =~ b) (b-c : b =~ c) (c-d : c =~ d)
     : (a-b ~* b-c) ~* c-d =~ a-b ~* (b-c ~* c-d) =>
     \let | a-c => a-b ~* b-c
          | b-c-refl : a-c =~ a-b ~* (b-c ~* refl) => J (\lam (p : b =~ c) _ => a-c =~ a-b ~* p) refl (symm $ right-refl b-c)
@@ -90,6 +90,13 @@
 
     \func const {Y : \Type}: trp p (\lam _ => Y) =~ (\lam y => y) =>
       J' (\lam _ p* => trp p* (\lam _ => Y) =~ (\lam y => y) ) p J-eq
+
+    \func trp-ap {A X : \Type} {a a' : A} (T : X -> \Type) (f : A -> X) (p : a =~ a')
+      : trp p (T o f) =~ trp (ap f p) T =>
+      J' (\lam _ p* => trp p* (T o f) =~ trp (ap f p*) T ) p
+        $ \let | left : trp (refl' a) (T o f) =~ id => trp.refl* {_}
+               | right : trp (ap f (refl' a)) T =~ id => ap (trp __ T) ap.refl* ~* trp.refl* {_}
+          \in left ~* symm right
   }
 }
 
@@ -99,30 +106,5 @@
   | JE _ _ => idp
 
 \record UsingId {P : Id} {
-  \func id \alias \infixr 3 =~ => P.id
-}
-
-\open Id \using (symm) \hiding (id, =~)
-
-\record Section5  {
-  \record exercises \extends UsingId {
-    | A : \Type
-    | a : A
-    | b : A
-    | a-b : a =~ b
-
-    \func ex1:right-unit {x y : A} (x-y : id x y): x-y ~* refl =~ x-y => right-refl x-y
-
-    \func ex2:left-unit {x y : A} (x-y : P.id x y) : refl ~* x-y =~ x-y =>
-      J (\lam (c : A) (q : id x c) => id (P.refl ~* q) q) (ex1:right-unit refl) x-y
-
-    \func ex3:associativity  {c d : A} (a-b : P.id a b) (b-c : P.id b c) (c-d : P.id c d)
-      : (a-b ~* b-c) ~* c-d =~ a-b ~* (b-c ~* c-d) => assoc a-b b-c c-d
-
-    \func ex4:inv-left (a-b : id a b) : symm a-b ~* a-b =~ refl => symm.left
-
-    \func ex5:inv-right  (a-b : id a b) : a-b ~* symm a-b =~ refl => symm.right
-
-    \func ex6:inv-inv  (a-b : id a b) : symm (symm a-b) =~ a-b => symm.cancel
-  }
+  \func id \alias \infixr 3 =~ => P.path
 }

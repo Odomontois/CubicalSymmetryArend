@@ -1,5 +1,8 @@
+\import Chapter2.eqs
+\import Function.Meta
 \import Paths
 
+\module ex \where{
 \func ap {X Y : \Type} (f : X -> Y) {x x' : X} (p : x = x') : f x = f x' \elim p
   | idp => idp
   \where {
@@ -10,5 +13,27 @@
 
     \func symm*  (p : x = x') : ap f (inv p) = inv (ap f p)
       | idp => idp
+
   }
+
+  \func ap-naturality \alias ns {X Y : \Type}  {f g : X -> Y} (h : \Pi (x : X) -> f x = g x) {x x' : X} (p : x = x')
+    : ap f p *> h x' = h x *> ap g p \elim p
+    | idp => idp_*> (h x)
+}
+
+\open Id
+\import Function
+\import Paths.Meta
+
+\record Definitions \extends UsingId {
+  \func ptw {X : \Type} {Y : X -> \Type} (f g : \Pi (x : X) -> Y x) (p : f =~ g) : \Pi (x : X) -> f x =~ g x
+    => J' (\lam (k : \Pi (x : X) -> Y x) _ => \Pi (x : X) -> f x =~ k x) p (\lam _ => refl)
+
+  \func ap-naturality \alias ns {X Y : \Type}  {f g : X -> Y} (h : \Pi (x : X) -> f x =~ g x) {x x' : X} (p : x =~ x')
+    : ap f p ~* h x' =~ h x ~* ap g p
+    => J' (\lam x* p* => ap f p* ~* h x* =~ h x ~* ap g p*) p $
+      \let | left : ap f refl ~* h x =~ h x  => ap (__ ~* h x) ap.refl* ~* left-refl (h x)
+           | right : h x ~* ap g refl =~ h x => ap (h x ~* __) ap.refl* ~* right-refl (h x)
+      \in left ~* symm right
+}
 
