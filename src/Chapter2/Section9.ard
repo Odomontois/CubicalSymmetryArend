@@ -1,5 +1,53 @@
+\import Algebra.Meta
+\import Equiv
+\import Function
+\import Function.Meta
+\import Homotopy.Fibration
 \import Logic.Unique
+\import Meta
+\import Paths
 
-\lemma eqPairContractible {X : \Type} (a : X): Contr (\Sigma (x : X)(a = x)) \cowith
+-- | Definition 2.9.1
+\func Contractible (A : \Type) (center : A) (contr :  \Pi (a' : A) -> center = a'): \Prop => Contr A center contr
+
+-- | Lemma 2.9.2
+\lemma eqPairContractible {X : \Type} (a : X): Contr (\Sigma (x : X) (a = x)) \cowith
   | center => (a, idp)
-  | contraction pair => \case \elim pair \with { (x*, idp) => idp }
+  | contraction pair => \case \elim pair \with {
+  (x*, idp) => idp
+  }
+
+-- | Definition 2.9.3
+\func preimage \alias \infixl 1 _-1 {A B : \Type} (f : A -> B) (y : B) : \Type => Fib f y
+
+-- | Definition 2.9.4
+\record Equ {A B : \Type} (f : A -> B) {
+  | equ (b : B): Contr (f _-1 b)
+
+  \func inverse \alias \infix 8 $-1 (b : B) : A => (equ b).center.1
+
+  \func f-inv (b : B): f (inverse b) = b => (equ b).center.2
+
+  \func inv-f (a : A): inverse (f a) = a =>
+    \let | fa-fib => f _-1 f a
+         | refl-fib : fa-fib => (a, idp)
+         | fa-fib-ctr : Contr fa-fib => equ (f a)
+         | center-path : fa-fib-ctr.center = refl-fib => fa-fib-ctr.contraction refl-fib
+    \in \lam i => (center-path i).1
+} \where {
+  \use \level equ-isProp {A B : \Type} (f : A -> B) (e e1 : Equ f): e = e1 => idp
+
+  \func make {A B : \Type} (f : A -> B) (equ : \Pi (b : B) -> \Sigma (a : A) (p : f a = b) (\Pi (fib : Fib f b) -> (a, p) = {Fib f b} fib)): Equ f =>
+    \new Equ f (\lam b => \let (a, p, c) => equ b \in \new Contr _ (a, p) c)
+
+  \lemma id-equ {X : \Type} => Equ.make (id {X}) $ \lam x => (x, idp, \lam fib => \case \elim fib \with {
+  (x1, idp) => idp
+  } )
+
+  \lemma transport-equ {X : \Type} {Y : X -> \Type} (x x1 : X) (p : x = x1): Equ (transport Y p) \elim p
+    | idp => Equ.make _ $ \lam y => (y, idp, \lam fib => \case \elim fib \with {
+      | (y1, idp) => idp
+    })
+}
+
+\func tequiv \alias \infix 3 =~ (A B : \Type): \Type => Equ {A} {B}
