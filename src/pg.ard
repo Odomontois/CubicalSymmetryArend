@@ -1,46 +1,9 @@
-\import Algebra.Algebra
-\import Algebra.Module
-\import Arith.Rat
-\import Data.List
-\import Equiv
-\import Function
-\import Function.Meta
-\import Homotopy.Fibration
-\import Meta
-\import Paths
-\import Paths.Meta
-\import Set
+\class Id {
+  | \classifying path \alias \infixr 3 =~ {A : \Type } (a a' : A) : \Type
+  | refl {A : \Type} {a : A} : path a a
+  | J {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : path a a*) -> \Type ) (b : B a refl) (p : path a a') : B a' p
+  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p* : path a a') -> \Type ) (b : B a refl) : J B b refl = b
 
-\lemma ex22 {X Y Z : \Type} (f : X -> Y) (g : Y -> Z) (z : Z): Equiv t => \new QEquiv t {
-  | ret ((y, p), (x, p')) => (x, pmap g p' *> p)
-  | ret_f u => unfold t $ rewrite idp_*> {?}
-  | f_sec _ => {?}
-} \where {
-  \func T1 => Fib (g o f) z
-
-  \func T2 => \Sigma (w : Fib g z) (Fib f w.1)
-
-  \func t : T1 -> T2 => \lam (x, p) => ((f x, p), (x, idp))
-
-  \func ret_f_eq (x : X) (p : g (f x) = z): p = {?} => {?}
-}
-
-\data Shuffle {A : \Type} (xs xs' : List A) \elim xs
-  | nil => snil (xs' = nil)
-  | head :: rest => scons (i : Nat) (Shuffle rest (replace xs' i 1 nil))
-
-\func Line1 => LModule RatField \where {
-  \func obvious : LModule RatField = Line1 => idp
-}
-
-\class Line \extends CAlgebra {
-  | R => RatField
-
-  \record D_rec {L : Line} (n : Nat) {
-    | x : L.E
-    \property nilpotent : pow x n = zro
-    \use \coerce toBase : L.E => x
-  }
-
-  \func D_ => D_rec {\this}
+  \func dpath {X : \Type} {Y : X -> \Type} {a a' : X} (p : a =~ a') (y : Y a): Y a' -> \Type
+    => J (\lam a* _ => Y a* -> \Type) (y =~ __) p
 }

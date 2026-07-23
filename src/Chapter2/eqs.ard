@@ -6,8 +6,8 @@
 \class Id {
   | \classifying path {A : \Type \lp \lh} (a a' : A) : \Type \lp \lh
   | refl {A : \Type} {a : A} : path a a
-  | J {A : \Type} {a a' : A} (B : \Pi (a* : A) (p* : path a a*) -> \Type) (b : B a refl) (p : path a a') : B a' p
-  | JE {A : \Type} {a : A} (B : \Pi (a' : A) (p* : path a a') -> \Type) (b : B a refl) : J B b refl = b
+  | J {A : \Type \lp \lh} {a a' : A} (B : \Pi (a* : A) (p* : path a a*) -> \Type (\suc \lp) (\suc \lh)) (b : B a refl) (p : path a a') : B a' p
+  | JE {A : \Type \lp \lh} {a : A} (B : \Pi (a' : A) (p* : path a a') -> \Type (\suc \lp) (\suc \lh)) (b : B a refl) : J B b refl = b
 
   \private \func ident \alias \infixr 3 =~ => path
 

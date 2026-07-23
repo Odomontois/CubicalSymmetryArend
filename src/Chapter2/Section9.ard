@@ -4,12 +4,12 @@
 \import Data.SubList
 \import Equiv.Univalence
 \import Function
-\import HLevel
 \import Equiv.Fiber
 \import Equiv.Sigma
 \import Equiv
 \import Function.Meta
 \import Homotopy.Fibration
+\import Logic.Unique
 \import Meta
 \import Paths
 \import Paths.Meta
@@ -37,6 +37,8 @@
 } \where {
   \lemma inverse'' (e : Equiv') : Equiv' e.f-1 => fromEquiv $ symQEquiv e.toEquiv
 
+  \open Equiv'
+
   \lemma inverse (e : Equiv') : Equiv' e.f-1 \cowith
     | contr (x : e.X) : Contr (Fib e.f-1 x) =>
     \let | y0 => f x
@@ -47,7 +49,7 @@
       | contraction ((y', px') \as fib') =>
         \let | py : y0 = y' => pmap f (inv px') *> finv y'
              | qfib : DepPath py px0 px' =>  helper e px'
-        \in DepPath.apap px0 px' {Fib e.f-1 x} (__, __) py qfib
+        \in DepPath.apap {_} {_} {_} {_} {px0} {px'} {Fib e.f-1 x} (__, __) py qfib
     } \where {
     \func helper  (e : Equiv') {x : e.X} {y : e.Y} (p : f-1 y = x) : HelperT p =>
       transport HelperT (inv_inv p) $ helper' $ inv p
@@ -57,8 +59,7 @@
         \func helper'  (px' : x = f-1 y) : DepPath (pmap f px' *> finv y) (invf x) (inv px') \elim px'
           | idp => rewrite (idp_*> (finv y)) $ helper''
 
-        \func helper'' : DepPath {Y} {f (f-1 y)} {y}
-            {\lam y' => f-1 y' = f-1 y}
+        \func helper'' : DepPath {Y} {\lam y' => f-1 y' = f-1 y} {f (f-1 y)} {y}
             (finv y) (invf (f-1 y)) idp => {?}
       }
   }
@@ -72,7 +73,7 @@
     \in \new Contr (Fib e.f-1 x) {
       | center => fib
       | contraction ((y', px') \as fib') =>
-        Fib.ext f-1 x fib fib' (py *> pmap f (inv px') *> finv y') $ {?}
+        Fib.ext {_} {_} {f-1} x fib fib' (py *> pmap f (inv px') *> finv y') $ {?}
     }
 
   \use \coerce fromEquiv {X Y : \Type} {f : X -> Y} (q : Equiv f): Equiv' f \cowith
@@ -102,11 +103,11 @@
   }
 }
 
-\lemma corContractAway {X : \Type} (a : X) (B : X -> \Type): Equiv' (contractAway.sigma-f a (\lam x _ => B x)) =>
-  contractAway.equiv a _
+-- \lemma corContractAway {X : \Type} (a : X) (B : X -> \Type): Equiv' (contractAway.sigma-f a (\lam x _ => B x)) =>
+--   contractAway.equiv a _
 
 \func exercise_12' {X Y : \Type} (e : X ~= Y) (B : X -> \Type) :  (\Sigma (x : X) (B x)) ~= (\Sigma (y : Y) (B (e.f-1 y))) \cowith
-  | f (x, b) => (e.f x, transport B (inv # e.invf x) b)
+  | f (x, b) => (e.f x, transport B (inv #' e.invf x) b)
   | contr (y, b) => \new Contr (Fib _ _) {
     | center => ((e.f-1 y, b), {?})
     | contraction => {?}

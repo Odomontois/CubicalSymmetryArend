@@ -1,26 +1,63 @@
+\import Chapter2.eqs
 \import Paths
+\import Function
 
-\func DepPath {X : \Type} {x x' : X} {Y : X -> \Type} (p : x = x') (y : Y x) (y' : Y x'): \Type \elim p
+
+-- Definition 2.7.1
+
+\func DepPath {X : \Type} {Y : X -> \Type} {x x' : X} (p : x = x') (y : Y x) (y' : Y x'): \Type \elim p
   | idp => y = y' \where {
   \func Of (Y : X -> \Type) (p : x = x') (y : Y x) (y' : Y x') => DepPath p y y'
 
-  \func pe (p : x = x'): Path (\lam i => Y (p @ i)) y y' = DepPath p y y' \elim p
+  -- Remark 2.7.2
+
+  \func is_same_as_path {X Z : \Type} {a a' : X} (p : a = a') (z z' : Z): DepPath.Of {_} (\lam _ => Z) p z z' = (z = z') \elim p
     | idp => idp
+
+  \func dep-refl {X : \Type} {x : X} (Y : X -> \Type) (y : Y x) : DepPath.Of {X} {x} {x} Y idp y y => idp
+
+  \func pe (p : x = x'): Path (Y o p) y y' = DepPath p y y' \elim p
+    | idp => idp
+
+  -- Definition 2.7.3
 
   \func dp-transport  (p : x = x') : DepPath p y y' = (transport Y p y = y') \elim p
     | idp => idp
 
-  \func dcomp {x'' : X} (y'' : Y x'') (p : x = x') (p' : x' = x'')
-              (q : DepPath p y y') (q' : DepPath p' y' y'') : DepPath (p *> p') y y'' \elim p', q'
+  -- Definition 2.7.4
+
+  \func dcomp \alias \infixr 5 **> {x'' : X} {y'' : Y x''} {p : x = x'} {p' : x' = x''}
+                                   (q : DepPath p y y') (q' : DepPath p' y' y'') : DepPath (p *> p') y y'' \elim p', q'
     | idp, idp => q \where {
-    \func idl (p : x = x') (q : DepPath p y y') : dcomp p idp q idp = q => idp
+    \func of {x'' : X} {y'' : Y x''} (p : x = x') (p' : x' = x'') (q : DepPath p y y') (q' : DepPath p' y' y'') =>
+      q **> q'
+
+    \func idl (p : x = x') (q : DepPath p y y') : DepPath {_} (idp_*> p) (idp **> {_} q) q \elim p, q
+      | idp, idp => idp
+
+    \func idr (p : x = x') (q : DepPath p y y') : DepPath {_} {DepPath __ y y'} idp (dcomp.of p idp q idp) q => idp
+
+    \func assoc {x''' : X} {y''' : Y x'''} (p : x = x') (p' : x' = x'') (p'' : x'' = x''')
+                (q : DepPath p y y') (q' : DepPath p' y' y'') (q'' : DepPath p'' y'' y''') :
+      DepPath {_} {DepPath __ y y'''} (*>-assoc p p' p'') ((q **> q') **> {_} q'') (q **> (q' **> {_} q''))
+    \elim p'', q''
+      | idp, idp => idp
   }
 
-  \func dinv (p : x = x') (q : DepPath p y y') : DepPath (inv p) y' y \elim p
-    | idp => inv q
+  \func dinv {p : x = x'} (q : DepPath p y y') : DepPath (inv p) y' y \elim p
+    | idp => inv q \where {
+    -- 2.7.6
+
+    \func cancel (p : x = x') (q : DepPath p y y') : DepPath {_} {DepPath __ y' y'} (inv_*> p) (dinv q **> {_} q) idp \elim p, q
+      | idp, idp => idp
+  }
+
+  -- Definition 2.7.6
 
   \func apd (p : x = x') (f : \Pi(x : X) -> Y x) : DepPath p (f x) (f x') \elim p
     | idp => idp
+
+  -- Definition 2.7.7
 
   \func apap {Z : \Type} (g : \Pi (x : X) (Y x) -> Z) (p : x = x') (q : DepPath p y y'): g x y = g x' y' \elim p, q
     | idp, idp => idp
@@ -30,6 +67,35 @@
 
   \func dcompl (y'' : Y x) (p : x = x') (q : DepPath p y y') (q' :  y'' = y): DepPath p y'' y' \elim q'
     | idp => q
+}
+
+\func Section7 {X : \Type} {x x1 : X} (p : x = x1) (Y : X -> \Type) (y : Y x) (y1 : Y x1) => () \where{
+  \func same-as-path {Z : \Type} (z z1' : Z): Path (\lam _ => Z) z z1' = (z = z1') => idp
+
+  \func dp-transport (p : x = x1): Path (Y o p) y y1 = (transport Y p y = y1) \elim p
+    | idp => idp
+
+  \func compose \alias \infixr 5 **> {x2 : X} {p1 : x1 = x2} {y2 : Y x2} (q1 : Path (Y o p) y y1) (q2 : Path (Y o p1) y1 y2): Path (Y o (p *> p1)) y y2 \elim p1, q2
+    | idp, idp => q1
+
+  \func dinv {p : x = x1} (q : Path (Y o p) y y1) : Path (Y o inv p) y1 y \elim p
+    | idp => inv q \where {
+    -- 2.7.6
+
+    \func cancel (p : x = x1) (q : Path (Y o p) y y1): Path (\lam i => Path (Y o inv_*> p i) y1 y1) (compose {_} {x1} (dinv q) q) idp \elim p, q
+      | idp, idp => idp
+  }
+}
+
+\open Id
+
+\record Definitions \extends UsingId {
+  \func dpath {X : \Type} {a a' : X} (p : a =~ a') (Y : X -> \Type) (y : Y a) (y' : Y a'): \Type =>
+    J (\lam a* _ => Y a* -> \Type) (y =~ __) p y'
+
+  --     \func same-as-path {X Z : \Type} {a a' : X} (p : a =~ a') {z z' : Z}: (z =~ z') =~ dpath p (\lam _ => Z) z z'
+  --       => {?}
+
 }
 
 
